@@ -25,7 +25,7 @@ After you enter username and password in the register page, you can verify the u
 Open mongodb shell:  
 **mongodb**
 
-Run following commands in mongodb:
+Run following commands in mongodb:  
 **use authdemo**  
 **collections.users.find()**  
 
