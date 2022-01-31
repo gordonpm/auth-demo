@@ -21,6 +21,7 @@ app.use(express.urlencoded({ extended: true }));
 app.get('/', (req, res) => {
     res.send('HOME PAGE');
 })
+
 app.get('/register', (req, res) => {
     res.render('register');
 });
@@ -34,6 +35,26 @@ app.post('/register', async (req, res) => {
     });
     await user.save();
     res.redirect('/')
+})
+
+app.get('/login', (req, res) => {
+    res.render('login')
+})
+
+app.post('/login', async (req, res) => {
+    const { username, password } = req.body
+    const user = await User.findOne({ username })
+    if (user) {
+        const validPassword = await bcrypt.compare(password, user.password)
+        if (validPassword) {
+            res.send("Welcome " + username)
+        } else {
+            res.send("Try again")
+        }
+    } else {
+        res.send("Try again")
+    }
+    
 })
 
 app.get('/secret', (req, res) => {
