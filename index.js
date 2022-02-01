@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const app = express();
 const User = require('./models/user');
 const bcrypt = require('bcrypt');
+const session = require('express-session');
 
 mongoose.connect('mongodb://localhost:27017/authdemo', 
     { useNewUrlParser: true, useUnifiedTopology: true})
@@ -17,6 +18,11 @@ mongoose.connect('mongodb://localhost:27017/authdemo',
 app.set('view engine', 'ejs');
 app.set('views', 'views');
 app.use(express.urlencoded({ extended: true }));
+app.use(session({ 
+    secret: 'thisisasessiontest',
+    resave: false,
+    saveUninitialized: true
+}));
 
 app.get('/', (req, res) => {
     res.send('HOME PAGE');
@@ -34,7 +40,8 @@ app.post('/register', async (req, res) => {
         password: hash
     });
     await user.save();
-    res.redirect('/')
+    req.session.user_id = user._id; // _id comes from mongodb
+    res.redirect('/secret')
 })
 
 app.get('/login', (req, res) => {
@@ -47,18 +54,22 @@ app.post('/login', async (req, res) => {
     if (user) {
         const validPassword = await bcrypt.compare(password, user.password)
         if (validPassword) {
-            res.send("Welcome " + username)
+            req.session.user_id = user._id; // _id comes from mongodb
+            console.log('user_id from session = ' + req.session.user_id);
+            //res.send("Welcome " + username)
+            res.redirect('/secret');
         } else {
-            res.send("Try again")
+            res.redirect('/login')
         }
     } else {
-        res.send("Try again")
+        res.redirect('/login')
     }
-    
 })
 
 app.get('/secret', (req, res) => {
-    res.send('THIS IS SECRET!');
+    if (!req.session.user_id)
+        res.redirect('/login');
+    res.send('THIS IS A SECRET PAGE');
 });
 
 app.listen(3000, () => {
