@@ -24,6 +24,13 @@ app.use(session({
     saveUninitialized: true
 }));
 
+const requireLogin = (req, res, next) => {
+    if (!req.session.user_id) {
+        return res.redirect('/login')
+    }
+    next()
+}
+
 app.get('/', (req, res) => {
     res.send('HOME PAGE');
 })
@@ -66,11 +73,15 @@ app.post('/login', async (req, res) => {
     }
 })
 
-app.get('/secret', (req, res) => {
-    if (!req.session.user_id)
-        res.redirect('/login');
-    res.send('THIS IS A SECRET PAGE');
+app.get('/secret', requireLogin, (req, res) => {
+    res.render('secret')
 });
+
+app.post('/logout', (req, res) => {
+    //req.session.user_id = null  // only destroys user_id in session
+    req.session.destroy() // in case you want to destroy all values in session
+    res.redirect('login')
+})
 
 app.listen(3000, () => {
     console.log('Server is running');
